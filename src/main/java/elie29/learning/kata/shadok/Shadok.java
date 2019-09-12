@@ -1,21 +1,72 @@
 package elie29.learning.kata.shadok;
 
-import lombok.Getter;
-
 public enum Shadok
 {
-   GA(0),
-   BU(1),
-   ZO(2),
-   MEU(3);
+   GA {
+      @Override
+      public ShadokSum next()
+      {
+         return new ShadokSum(BU);
+      }
 
-   @Getter
-   private final int index;
+      @Override
+      public ShadokSum add(Shadok shadok)
+      {
+         return new ShadokSum(shadok);
+      }
+   },
+   BU {
+      @Override
+      public ShadokSum next()
+      {
+         return new ShadokSum(ZO);
+      }
 
-   Shadok(int index)
-   {
-      this.index = index;
-   }
+      @Override
+      public ShadokSum add(Shadok shadok)
+      {
+         if (shadok == GA) return GA.next();
+         return shadok.next();
+      }
+   },
+   ZO {
+      @Override
+      public ShadokSum next()
+      {
+         return new ShadokSum(MEU);
+      }
+
+      @Override
+      public ShadokSum add(Shadok shadok)
+      {
+         if (shadok == GA) return BU.next();
+         if (shadok == BU) return next();
+
+         Shadok result = shadok == ZO ? GA : BU;
+         return new ShadokSum(result, true);
+      }
+   },
+   MEU {
+      @Override
+      public ShadokSum next()
+      {
+         return new ShadokSum(GA, true);
+      }
+
+      @Override
+      public ShadokSum add(Shadok shadok)
+      {
+         if (shadok == GA) return ZO.next();
+         if (shadok == BU) return next();
+
+         Shadok result = shadok == ZO ? BU : ZO;
+         return new ShadokSum(result, true);
+      }
+   };
+
+   public abstract ShadokSum next();
+
+   public abstract ShadokSum add(Shadok shadok);
 
    public static Shadok from(String code)
    {
@@ -31,17 +82,4 @@ public enum Shadok
       }
    }
 
-   public static Shadok from(int index)
-   {
-      switch (index) {
-         case 0:
-            return GA;
-         case 1:
-            return BU;
-         case 2:
-            return ZO;
-         default:
-            return MEU;
-      }
-   }
 }

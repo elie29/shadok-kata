@@ -1,24 +1,27 @@
 package elie29.learning.kata.shadok;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static elie29.learning.kata.shadok.Shadok.BU;
+import static elie29.learning.kata.shadok.Shadok.GA;
+
 public class ShadokAdditioner
 {
 
-   private static final String ZERO = "0";
    private static final String MEU = "MEU";
 
    public String add(String left, String right)
    {
-      StringBuffer leftCode = extract(left);
-      StringBuffer rightCode = extract(right);
-
-      AdjustStringLength(leftCode, rightCode);
+      List leftCode = extract(left);
+      List rightCode = extract(right);
 
       return sum(leftCode, rightCode);
    }
 
-   private StringBuffer extract(String value)
+   private List extract(String value)
    {
-      StringBuffer sb = new StringBuffer();
+      List<Shadok> shadoks = new ArrayList();
       Shadok shadok;
       int index = 0;
 
@@ -30,54 +33,57 @@ public class ShadokAdditioner
             shadok = Shadok.from(value.substring(index, index + 2));
             index += 2;
          }
-         sb.append(shadok.getIndex());
+         shadoks.add(shadok);
       } while (index < value.length());
 
-      return sb;
+      return shadoks;
    }
 
-   private void AdjustStringLength(StringBuffer leftCode, StringBuffer rightCode)
-   {
-      // left and right string should have same length
-      int diff = leftCode.length() - rightCode.length();
-
-      if (diff < 0) {
-         leftCode.insert(0, ZERO.repeat(-diff));
-      } else if (diff > 0) {
-         rightCode.insert(0, ZERO.repeat(diff));
-      }
-   }
-
-   private String sum(StringBuffer left, StringBuffer right)
+   private String sum(List<Shadok> left, List<Shadok> right)
    {
       StringBuffer res = new StringBuffer();
-      int carry = 0;
+      Shadok carry = GA;
 
-      /* Add all numerals from right to left */
-      for (int i = left.length() - 1; i >= 0; i -= 1) {
-         /* Add decimal values of numerals and carry */
-         int num = carry + toInt(left.charAt(i)) + toInt(right.charAt(i));
+      adjustListSize(left, right);
 
-         /* Check if we have carry for next addition of numerals */
-         carry = 0;
-         if (num >= 4) {
-            carry = 1;
-            num -= 4;
-         }
+      /* Add all shadoks from right to left */
+      for (int i = left.size() - 1; i >= 0; i -= 1) {
+         Shadok sL = left.get(i);
+         Shadok sR = right.get(i);
 
-         res.insert(0, Shadok.from(num));
+         // add carry + left + right
+         ShadokSum lr = sL.add(sR);
+         ShadokSum clr = carry.add(lr.shadok);
+
+         // set carry for the next iteration
+         carry = (lr.hasCarry || clr.hasCarry) ? BU : GA;
+
+         res.insert(0, clr.shadok);
       }
 
-      // Check carry for the last number
-      if (carry == 1) {
-         res.insert(0, Shadok.BU);
+      // Check carry for the last shadok
+      if (carry == BU) {
+         res.insert(0, BU);
       }
 
       return res.toString();
    }
 
-   private int toInt(char value)
+   private void adjustListSize(List<Shadok> left, List<Shadok> right)
    {
-      return value - '0';
+      int diff = left.size() - right.size();
+
+      if (diff < 0) {
+         fill(left, -diff);
+      } else if (diff > 0) {
+         fill(right, diff);
+      }
+   }
+
+   private void fill(List<Shadok> list, int count)
+   {
+      for (int i = 0; i < count; i += 1) {
+         list.add(0, GA);
+      }
    }
 }
