@@ -25,7 +25,6 @@ public enum Shadok
       @Override
       public ShadokSum add(Shadok shadok)
       {
-         if (shadok == GA) return GA.next();
          return shadok.next();
       }
    },
